@@ -121,7 +121,7 @@ static void deleteBackup(const std::string&root,const std::string&title){
 
 int main(){
  padConfigureInput(1,HidNpadStyleSet_NpadStandard);padInitializeDefault(&pad);mkdir("sdmc:/gamevault",0777);mkdir("sdmc:/gamevault/backups",0777);logging=fopen("sdmc:/game-vault.log","a");
- try{require(logging,"Cannot open log");check(framebufferCreate(&fb,nwindowGetDefault(),1280,720,PIXEL_FORMAT_RGBA_8888,2),"Display creation");check(framebufferMakeLinear(&fb),"Display linear mode");display=true;screen.message="Loading your library...";draw(true);check(nsInitialize(),"NS init");note("GAME_VAULT_VERSION=0.4.3-cartridge-icons\n");
+ try{require(logging,"Cannot open log");check(framebufferCreate(&fb,nwindowGetDefault(),1280,720,PIXEL_FORMAT_RGBA_8888,2),"Display creation");check(framebufferMakeLinear(&fb),"Display linear mode");display=true;screen.message="Loading your library...";draw(true);check(nsInitialize(),"NS init");note("GAME_VAULT_VERSION=0.4.5-installed-metadata\n");
   try{auto b=read("sdmc:/gamevault/connections.cfg",256);screen.connections=ConnectionSettings::decode(std::string(b.begin(),b.end()));}catch(...){}
   remoteSettings=loadRemoteSettings();updateStorageLabel();networkStatusReady=R_SUCCEEDED(nifmInitialize(NifmServiceType_User));
   int autoMode=screen.connections.automatic;

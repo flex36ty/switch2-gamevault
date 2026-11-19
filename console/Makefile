@@ -17,7 +17,7 @@ $(OUT)/mtp-%.o: vendor/mtp/source/%.cpp | $(OUT)
 	$(PREFIX)g++ $(CPPFLAGS) $(CXXFLAGS) -Wno-error -c $< -o $@
 $(OUT)/mtp-%.o: vendor/mtp/source/%.c | $(OUT)
 	$(PREFIX)gcc $(CPPFLAGS) $(CFLAGS) -Wno-error -c $< -o $@
-all: game-vault-companion-v043.nro
+all: game-vault-companion-v045.nro
 $(OUT):
 	mkdir -p $@
 $(OUT)/%.o: source/%.cpp | $(OUT)
@@ -29,8 +29,8 @@ $(OUT)/switch.specs: $(LIBOUNCE)/switch.specs | $(OUT)
 $(OUT)/mtp.elf: $(OBJECTS) $(OUT)/switch.specs vendor/libsmb2/build-vault/lib/libsmb2.a
 	$(PREFIX)g++ $(ARCH) -specs=$(OUT)/switch.specs -Wl,--gc-sections,-Map,$(OUT)/mtp.map $(OBJECTS) vendor/libsmb2/build-vault/lib/libsmb2.a -L$(DEVKITPRO)/portlibs/switch/lib -lcurl -L$(LIBOUNCE)/lib -lounce_core -L$(DEVKITPRO)/portlibs/switch/lib -lz -o $@
 $(OUT)/mtp.nacp: Makefile | $(OUT)
-	$(DEVKITPRO)/tools/bin/nacptool --create 'Game Vault' 'Game Vault Project' '0.4.3' $@
-game-vault-companion-v043.nro: $(OUT)/mtp.elf $(OUT)/mtp.nacp assets/game-vault-icon.jpg
+	$(DEVKITPRO)/tools/bin/nacptool --create 'Game Vault' 'Game Vault Project' '0.4.5' $@
+game-vault-companion-v045.nro: $(OUT)/mtp.elf $(OUT)/mtp.nacp assets/game-vault-icon.jpg
 	$(DEVKITPRO)/tools/bin/elf2nro $< $@ --nacp=$(OUT)/mtp.nacp --icon=assets/game-vault-icon.jpg
 -include $(OBJECTS:.o=.d)
 .PHONY: all

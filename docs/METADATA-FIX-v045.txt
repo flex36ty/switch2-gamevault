@@ -1,0 +1,28 @@
+Game Vault 0.4.5 - installed NCM metadata preservation
+
+Observed Mario Kart World patch 0400c3f00006e800 version 917504:
+NCM returned 272 bytes, 24-byte extended header, 4 content entries,
+0 metadata dependencies. The packaged extended-data field is 3284.
+The old formula incorrectly expected 32 + 4*24 + 3284 = 3412 bytes.
+The returned record has 144 bytes after the content entries. Their semantics
+are not inferred or rewritten; the record is preserved byte-for-byte.
+
+GBPLAN01 schema 2 distinguishes bounded installed-database records from the
+legacy schema-1 size assumption. All existing content-ID, count, type, title,
+size and hash checks remain. Source content entries must independently match
+NCM ListContentInfo, and the full metadata is re-read and compared before
+publishing the completed catalog. Restore/import and installer share the new
+layout validator; NCM metadata is written unchanged and read back exactly.
+Existing schema-1 backups remain supported with their original checks.
+Use v0.4.5 or newer for backups created by this build.
+
+Validation: native build and host regression tests pass. Tests cover observed
+MKW sizes, old full-extra records, base records, byte preservation, wrong title,
+dependency/count mismatch, unknown schemas, oversized and truncated records.
+Actual MKW backup/restore with this build remains to be tested on the console.
+No HEN changes. Existing NROs retained; new file /switch/game-vault-v045.nro.
+
+Reference for distinction between packaged and database conversion:
+https://github.com/Atmosphere-NX/Atmosphere/blob/master/libraries/libstratosphere/source/ncm/ncm_content_meta.cpp
+This source illustrates distinct conversions; it is not evidence for the
+meaning of the Switch 2 record's 144-byte trailing region.

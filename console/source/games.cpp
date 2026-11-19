@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include <cstddef>
+#include "metadata_layout.h"
 #include "components.hpp"
 #include "home_selection.hpp"
 #include "paths.hpp"
@@ -31,12 +32,10 @@ static void validateKey(const Package&p,u64 title,unsigned){
 static std::string archiveName(const InstallEntry&e){return hex(e.id,16)+(e.type==0?".cnmt.nca":".nca");}
 static void validatePlan(const InstallPlan&p,const Package&pkg,u64 title){
  u8 digest[32];sha256CalculateHash(digest,&p,offsetof(InstallPlan,hash));
- require(!memcmp(p.magic,"GBPLAN01",8)&&p.schema==1&&p.count>0&&p.count<=INSTALL_MAX&&p.meta_size>=32&&p.meta_size<=META_MAX&&!memcmp(digest,p.hash,32),"Invalid package digest/format");
+ require(!memcmp(p.magic,"GBPLAN01",8)&&(p.schema==1||p.schema==2)&&p.count>0&&p.count<=INSTALL_MAX&&p.meta_size>=32&&p.meta_size<=META_MAX&&!memcmp(digest,p.hash,32),"Invalid package digest/format");
  require(p.title==pkg.key.id&&p.version==pkg.key.version&&memchr(p.root,0,sizeof(p.root))&&backupRootValid(p.root),"Package identity/path mismatch");
  NcmContentMetaHeader hdr{};memcpy(&hdr,p.metadata,sizeof(hdr));unsigned start=8+hdr.extended_header_size;
- require(hdr.content_count==p.count&&!hdr.content_meta_count,"Unsupported metadata dependencies");
- if(pkg.key.type==128)require(hdr.extended_header_size==16&&p.meta_size==start+24*p.count,"Unsupported base metadata");
- else{u64 base=0;u32 extra=0;memcpy(&base,p.metadata+8,8);memcpy(&extra,p.metadata+20,4);require(hdr.extended_header_size==24&&base==title&&extra<=META_MAX&&p.meta_size==start+24*p.count+extra,"Unsupported update metadata");}
+ require(vaultMetadataLayoutValid(&p,pkg.key.type,title), "Unsupported installed metadata layout");
  unsigned meta=0,program=0;
  for(unsigned i=0;i<p.count;i++){NcmContentInfo ci{};memcpy(&ci,p.metadata+start+i*24,sizeof(ci));u64 size=0;ncmContentInfoSizeToU64(&ci,&size);const auto&e=p.entries[i];
  require(!memcmp(e.id,&ci.content_id,16)&&size==e.size&&size&&e.type==ci.content_type&&e.attr==ci.attr&&!ci.id_offset&&!e.reserved,"Unsupported multi-program/content layout");
@@ -52,12 +51,19 @@ void backupGame(u64 title,const std::string&dir,unsigned selected){
  // Validate all metadata and reserve space before copying any archive.
  for(unsigned i=0;i<catalog.count;i++){
   auto&pkg=catalog.packages[i];pkg.key=rows[i].key;pkg.storage=rows[i].storage;validateKey(pkg,title,i);
-  auto p=std::make_unique<InstallPlan>();memset(p.get(),0,sizeof(*p));memcpy(p->magic,"GBPLAN01",8);p->schema=1;p->title=pkg.key.id;p->version=pkg.key.version;
+  auto p=std::make_unique<InstallPlan>();memset(p.get(),0,sizeof(*p));memcpy(p->magic,"GBPLAN01",8);p->schema=2;p->title=pkg.key.id;p->version=pkg.key.version;
   MetaDb db;check(ncmOpenContentMetaDatabase(&db.db,(NcmStorageId)pkg.storage),"source metadata");u64 size=0;check(ncmContentMetaDatabaseGet(&db.db,&pkg.key,&size,p->metadata,META_MAX),"read metadata");require(size>=32&&size<=META_MAX,"metadata size");p->meta_size=size;
   NcmContentMetaHeader hdr{};memcpy(&hdr,p->metadata,sizeof(hdr));p->count=hdr.content_count;unsigned start=8+hdr.extended_header_size;require(p->count>0&&p->count<=INSTALL_MAX&&start<=size&&p->count*24<=size-start,"metadata bounds");
   std::string source=dir.substr(5)+"/p"+std::to_string(i);require(source.size()<sizeof(p->root),"path too long");strcpy(p->root,source.c_str());
   for(unsigned k=0;k<p->count;k++){NcmContentInfo ci{};memcpy(&ci,p->metadata+start+24*k,sizeof(ci));auto&e=p->entries[k];memcpy(e.id,&ci.content_id,16);ncmContentInfoSizeToU64(&ci,&e.size);e.type=ci.content_type;e.attr=ci.attr;require(e.size<=(1ULL<<40)&&needed+e.size>=needed,"archive size overflow");needed+=e.size;}
-  sha256CalculateHash(p->hash,p.get(),offsetof(InstallPlan,hash));validatePlan(*p,pkg,title);plans.push_back(std::move(p));
+  note("BACKUP_METADATA title=%s type=%u version=%u storage=%u bytes=%u extended_header=%u content_count=%u dependency_count=%u header=%s\n",idstr(pkg.key.id).c_str(),unsigned(pkg.key.type),unsigned(pkg.key.version),unsigned(pkg.storage),p->meta_size,unsigned(hdr.extended_header_size),unsigned(hdr.content_count),unsigned(hdr.content_meta_count),hex(p->metadata,std::min<size_t>(p->meta_size,64)).c_str());
+  if(pkg.key.type==129){u64 base=0;u32 extra=0;memcpy(&base,p->metadata+8,8);memcpy(&extra,p->metadata+20,4);note("BACKUP_PATCH_LAYOUT base=%s expected_base=%s extra=%u expected_bytes=%llu\n",idstr(base).c_str(),idstr(title).c_str(),extra,(unsigned long long)start+24ULL*p->count+extra);}
+  sha256CalculateHash(p->hash,p.get(),offsetof(InstallPlan,hash));validatePlan(*p,pkg,title);
+  NcmContentInfo listed[INSTALL_MAX+1]{};s32 listedCount=0;
+  check(ncmContentMetaDatabaseListContentInfo(&db.db,&listedCount,listed,INSTALL_MAX+1,&pkg.key,0),"Cross-check metadata archives");
+  require(listedCount==(s32)p->count,"NCM archive count changed");
+  for(unsigned k=0;k<p->count;k++){unsigned matches=0;for(s32 j=0;j<listedCount;j++)matches+=!memcmp(&listed[j],p->metadata+start+24*k,24);require(matches==1,"NCM archive list differs from metadata");}
+  note("BACKUP_DATABASE_METADATA_VERIFIED schema=2 bytes=%u trailing=%u archives=%u\n",p->meta_size,p->meta_size-start-24*p->count,p->count);plans.push_back(std::move(p));
  }
  if(!companionStreaming()){FsFileSystem sd{};check(fsOpenSdCardFileSystem(&sd),"SD space open");s64 free=0;Result space=fsFsGetFreeSpace(&sd,"/",&free);fsFsClose(&sd);check(space,"SD space");require(free>=0&&(u64)free>=needed,"Not enough SD backup space");}
  std::vector<u8> buffer(1024*1024);
@@ -72,6 +78,7 @@ void backupGame(u64 title,const std::string&dir,unsigned selected){
   sha256CalculateHash(p.hash,&p,offsetof(InstallPlan,hash));write(path+"/package.bin",&p,sizeof(p));memcpy(catalog.hashes[i],p.hash,32);
  }
  vaultTransfer("Finalizing backup metadata","",0,0);
+ for(unsigned i=0;i<catalog.count;i++){MetaDb db;const auto&pkg=catalog.packages[i];const auto&p=*plans[i];check(ncmOpenContentMetaDatabase(&db.db,(NcmStorageId)pkg.storage),"Final source metadata");std::vector<u8>record(META_MAX);u64 bytes=0;check(ncmContentMetaDatabaseGet(&db.db,&pkg.key,&bytes,record.data(),record.size()),"Re-read source metadata");require(bytes==p.meta_size&&!memcmp(record.data(),p.metadata,p.meta_size),"NCM metadata changed during backup");}
  // Snapshot records again to detect version changes during the export.
  auto final=home(title,false);require(final.size()==original.size()&&!memcmp(final.data(),original.data(),original.size()*sizeof(HomeRow)),"HOME changed during backup");
  sha256CalculateHash(catalog.digest,&catalog,offsetof(Catalog,digest));write(dir+"/catalog.bin",&catalog,sizeof(catalog));note("GAME_BACKUP_VERIFIED title=%s packages=%u (base/update only)\n",idstr(title).c_str(),catalog.count);

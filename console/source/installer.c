@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include "format.h"
+#include "metadata_layout.h"
 #include "progress.h"
 #include "recovery.h"
 #include "cycle.h"
@@ -55,16 +56,13 @@ static bool load_journal(void){
 static bool load_plan(void){
  FILE* f=fopen(planfile,"rb");if(!f)return false;
  bool good=fread(&plan,1,sizeof(plan),f)==sizeof(plan)&&fgetc(f)==EOF&&!ferror(f);fclose(f);
- if(!good||memcmp(plan.magic,"GBPLAN01",8)||plan.schema!=1||!plan.count||plan.count>INSTALL_MAX||plan.meta_size<24||plan.meta_size>META_MAX||!digest_equal(&plan,offsetof(InstallPlan,hash),plan.hash))return false;
+ if(!good||memcmp(plan.magic,"GBPLAN01",8)||(plan.schema!=1&&plan.schema!=2)||!plan.count||plan.count>INSTALL_MAX||plan.meta_size<24||plan.meta_size>META_MAX||!digest_equal(&plan,offsetof(InstallPlan,hash),plan.hash))return false;
  if(!memchr(plan.root,0,sizeof(plan.root))||plan.root[0]!='/'||strstr(plan.root,".."))return false;
  for(const char* p=plan.root;*p;p++)if(!((*p>='a'&&*p<='z')||(*p>='A'&&*p<='Z')||(*p>='0'&&*p<='9')||*p=='/'||*p=='_'||*p=='-'))return false;
  NcmContentMetaHeader hdr;memcpy(&hdr,plan.metadata,sizeof(hdr));
  
  unsigned start=8+hdr.extended_header_size;
- if((package_type!=128&&package_type!=129)||hdr.content_count!=plan.count||hdr.content_meta_count)return false;
- if(package_type==128){if(plan.title!=application||hdr.extended_header_size!=16||plan.meta_size!=start+24*plan.count)return false;}
- else{u64 base=0;u32 extra=0;memcpy(&base,plan.metadata+8,8);memcpy(&extra,plan.metadata+20,4);
- if(plan.title!=application+0x800||base!=application||hdr.extended_header_size!=24||extra>65536||plan.meta_size!=start+24*plan.count+extra)return false;}
+ if(!vaultMetadataLayoutValid(&plan,package_type,application))return false;
 
  unsigned meta=0,program=0;
  for(unsigned i=0;i<plan.count;i++){NcmContentInfo ci;memcpy(&ci,plan.metadata+start+i*24,sizeof(ci));u64 size=0;ncmContentInfoSizeToU64(&ci,&size);InstallEntry* e=&plan.entries[i];

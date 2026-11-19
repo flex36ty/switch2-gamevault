@@ -1,18 +1,28 @@
-# Game Vault 0.4.3
+# Game Vault 0.4.5
 
 Graphite-style Switch 2 homebrew for game/save backups, restore, and file transfers.
 
+## Latest changes
+
+Mario Kart World update backup no longer uses the packaged metadata size to
+validate the installed NCM record. New backups preserve the entire database
+record and cross-check its archive list. **Restore new backups with v0.4.5 or
+later.** Existing schema-1 backups remain supported.
+
+The user confirmed backup now starts; completion and restore are still pending.
+See [CHANGELOG.md](CHANGELOG.md) and [metadata fix notes](docs/METADATA-FIX-v045.txt).
+
 ## Download and run
 
-Use the release assets: `game-vault-v043.nro` for an existing supported setup, or
-`game-vault-v0.4.3-runtime.zip` for the app plus the working kaiHEN fsipc-v1 bundle,
-Windows launcher, and required SD helper files. `game-vault-v0.4.3-source.zip`
+Use the release assets: `game-vault-v045.nro` for an existing supported setup, or
+`game-vault-v0.4.5-runtime.zip` for the app plus the working kaiHEN fsipc-v1 bundle,
+Windows launcher, and required SD helper files. `game-vault-v0.4.5-source.zip`
 contains this source tree and bundled dependencies.
 
 1. Preserve your current working homebrew and HEN before updating.
 2. Extract the runtime ZIP on the PC. Merge the **contents** of its `SD` directory
    into the SD root (or transfer them with FTP). Do not replace your backups.
-3. If HEN is already running, open **Game Vault 0.4.3**. No restart is needed to
+3. If HEN is already running, open **Game Vault 0.4.5**. No restart is needed to
    update the app. Keep the older app until the new version is confirmed.
 4. If starting HEN after a reboot, first set up CivSwitch and open Civilization VII
    at **Awaiting payload**. This package does not install the CivSwitch save.
@@ -50,7 +60,7 @@ mode is open. Persistent FTP runs while the app is open; closing the app stops i
 
 ## Cartridge support and limits
 
-v0.4.3 adds a direct GameCard control-metadata fallback for title/icon lookup after
+v0.4.3 added a direct GameCard control-metadata fallback for title/icon lookup after
 the cache/system lookup. It uses the existing bounded read-only control mount and
 closes handles after reading. The cartridge stays at the top of Backup.
 
@@ -63,10 +73,10 @@ console SD/FTP/SMB destination for cartridge backup, not direct PC streaming.
 
 ## Validation and limitations
 
-- v0.4.3 native build passed; uploaded NRO readback matched SHA-256.
+- v0.4.5 native build and metadata regression tests passed; uploaded NRO readback matched SHA-256.
 - Working HEN hash manifest verified; the HEN was not modified for this release.
 - Previous storage tests covered FTP/SMB byte verification and snapshot roundtrips.
-- v0.4.3 direct cartridge title/icon lookup still awaits console confirmation.
+- v0.4.5 direct cartridge title/icon lookup still awaits console confirmation.
 - Restoring game files does not restore licenses or guarantee playability after a
   factory reset. Profile/save backup is not a Nintendo Account/license backup.
 

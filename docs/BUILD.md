@@ -19,7 +19,7 @@ cmake --build console/vendor/libsmb2/build-vault -j2
 make -C console -j2
 ```
 
-Output: `console/game-vault-companion-v043.nro`.
+Output: `console/game-vault-companion-v045.nro`.
 libsmb2 includes the Switch randomGet adaptation and source/licenses; libounce
 includes the USB initialization adaptations used by this app. Keep these copies
 when rebuilding. Supporting HEN/plugin source snapshots are under support-source;
