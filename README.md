@@ -73,6 +73,20 @@ console SD/FTP/SMB destination for cartridge backup, not direct PC streaming.
 See `docs/BUILD.md` for builds and `THIRD-PARTY.txt` for component notices.
 Runtime ZIP includes per-file SHA-256 hashes; release SHA256SUMS.txt covers assets.
 
+## Screenshots
+
+**Backup — inserted cartridge, installed games, and separate base, update and save options**
+
+![Backup — inserted cartridge, installed games, and separate base, update and save options](docs/screenshots/backup.jpg)
+
+**Decrypted Backup — matched base ExeFS and RomFS exports**
+
+![Decrypted Backup — matched base ExeFS and RomFS exports](docs/screenshots/decrypted-backup.jpg)
+
+**Settings — FTP, USB MTP, web interface and storage destinations**
+
+![Settings — FTP, USB MTP, web interface and storage destinations](docs/screenshots/settings.jpg)
+
 ## Credits and thanks
 
 Game Vault builds on the work of the Switch homebrew community. Credit for the
