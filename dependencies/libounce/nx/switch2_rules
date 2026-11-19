@@ -1,0 +1,41 @@
+#---------------------------------------------------------------------------------
+# Rules for Switch 2 programs that use libounce.
+#
+# Include this file in place of $(DEVKITPRO)/libnx/switch_rules:
+#
+#   include $(DEVKITPRO)/libounce/switch2_rules
+#
+# The rules of switch_rules apply without change. This file also does these
+# steps:
+# - It sets LIBNX to libounce. A Makefile that links -lnx gets libounce.
+# - It puts the Switch 2 portlibs before the Switch 1 portlibs. A library that
+#   uses only the C library can still come from the Switch 1 portlibs.
+# - It defines __SWITCH2__ in CPPFLAGS. The libounce headers need it.
+# - It defines SWITCH2_CPU, the compiler flags for the Switch 2's CPU, from
+#   switch2_cpu.mk. Use it in ARCH:
+#
+#     ARCH := $(SWITCH2_CPU) -mtp=soft -fPIE
+#
+# PORTLIBS is one directory, as in libnx: the Switch 1 portlibs. Makefiles
+# use it as a single prefix, for example -I$(PORTLIBS)/include/freetype2.
+# The Switch 2 portlibs (PORTLIBS_SWITCH2) are an overlay on that prefix.
+# Their headers come first because CPPFLAGS is before CFLAGS in the compile
+# rules. Their libraries come first because the link rule puts
+# OVERLAY_LIBPATHS before LIBPATHS. Thus -lEGL and -lvulkan link OunceVK, not
+# switch-mesa.
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPro)
+endif
+
+LIBNX	:=	$(DEVKITPRO)/libounce
+
+include $(LIBNX)/switch2_cpu.mk
+
+include $(LIBNX)/switch_rules
+
+PORTLIBS_SWITCH2	:=	$(PORTLIBS_PATH)/switch2
+PATH	:=	$(PORTLIBS_SWITCH2)/bin:$(PATH)
+
+CPPFLAGS	+=	-D__SWITCH__ -D__SWITCH2__ -I$(PORTLIBS_SWITCH2)/include
+OVERLAY_LIBPATHS	:=	-L$(PORTLIBS_SWITCH2)/lib

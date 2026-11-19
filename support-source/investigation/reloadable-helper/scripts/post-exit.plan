@@ -1,0 +1,9 @@
+KAIHEN_PLAN 1
+NCM_OPEN
+CELESTE_LICENSE
+LOG Close the homebrew host now; waiting 30 seconds
+DELAY 30000
+CELESTE_ROMFS
+CLOSE
+LOG Post-exit RomFS read passed
+END

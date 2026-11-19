@@ -1,0 +1,10 @@
+Preserve the original copyright and license notices in each component.
+This snapshot does not relicense third-party code.
+
+console/vendor/mtp: mtp-server-nx-derived transport, Apache-2.0 notice included.
+console/vendor/libsmb2: libsmb2, LGPL notices/source included (d6a364f0b17d7d7b1451cfab23dcebdd384afd3c).
+console/vendor/stb_*.h: embedded stb license notices.
+console/assets/OFL.txt: Atkinson Hyperlegible font license.
+dependencies/libounce: ouncebrew libounce d1718bb, LICENSE.md and LICENSES included.
+support-source: original kaiHEN GPL-2.0 and per-file/source component notices retained.
+Runtime kaiHEN licenses/ directory contains the notices for the bundled binaries.

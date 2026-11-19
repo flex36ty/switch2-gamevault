@@ -1,0 +1,10 @@
+KAIHEN_PLAN 1
+NCM_OPEN
+CELESTE_LICENSE
+LOG ExeFS handoff ready: close host and reopen ExeFS Test now
+DELAY 60000
+DELAY 60000
+CELESTE_ROMFS
+CLOSE
+LOG ExeFS hold window expired; resources released
+END

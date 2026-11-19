@@ -1,0 +1,8 @@
+KAIHEN_PLAN 1
+LOG Smoke test begins
+SD_PROBE
+NCM_OPEN
+NCM_COUNT
+CLOSE
+LOG Smoke test complete
+END

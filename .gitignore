@@ -1,0 +1,12 @@
+build*/
+*.o
+*.obj
+*.elf
+*.map
+*.d
+*.nro
+*.nso
+*.a
+*.pyc
+__pycache__/
+runs/

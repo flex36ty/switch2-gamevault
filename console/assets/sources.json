@@ -1,0 +1,18 @@
+{
+  "vendor/stb_image.h": {
+    "url": "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h",
+    "sha256": "deb4f18c9ca21b751a1323019031c94c0bf5ca1d2929ef5913cc56f00aab6e91"
+  },
+  "vendor/stb_truetype.h": {
+    "url": "https://raw.githubusercontent.com/nothings/stb/master/stb_truetype.h",
+    "sha256": "428cfe93520f2aed5e413a220b0db5bba5b17e2ebe5a64e4a8efa9eeeb67ec5f"
+  },
+  "assets/AtkinsonHyperlegible-Regular.ttf": {
+    "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegible/AtkinsonHyperlegible-Regular.ttf",
+    "sha256": "7fb917c89019896d0b52ee84b7cbb3304c18cb90b19a62f5e32712bd23e97669"
+  },
+  "assets/OFL.txt": {
+    "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegible/OFL.txt",
+    "sha256": "f32d22b3908fcad2c86a74000614ec22e6a7f66ea7e867e616026a27aebdc143"
+  }
+}
